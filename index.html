@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <title >Blockchain Explorer</title>
+    <link rel="icon" type="image/x-icon" href="/images/logo.png">
+
+  </head>
+  <body>  
+    <div class="d-flex align-items-center justify-content-center p-3">
+      <img class="rounded d-inline-block m-2" src="./images/logo.png" width="50" height="50">
+      <div class="d-flex flex-column align-items-center">
+        <button id="statusButton" class="btn btn-primary btn-lg">Status</button>
+        <b><h1 class="text-center mb-0" style="font-size: 36px;">Ethereum Blockchain Explorer</h1></b>
+      </div>
+    </div>
+    
+    
+    <br>
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script>
+        // Initialize the web3 object
+        var web3 = new Web3();
+      
+        // Check if the user has MetaMask installed and enabled
+        if (typeof window.ethereum !== 'undefined') {
+          // Use the user's MetaMask provider
+          web3.setProvider(window.ethereum);
+          window.ethereum.enable();
+        }
+        else {
+          // Use Infura API as the backend provider
+          web3.setProvider(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/c553151b7f304df78349fe0757e58658'));
+        }
+    </script>
+    
+
+    <script>
+      window.addEventListener('load', function() {
+        // Check if Metamask is installed and enabled
+        if (window.ethereum) {
+          // Display the button as green
+          document.getElementById("statusButton").style.backgroundColor = "green";
+          document.getElementById("statusButton").innerHTML = "Metamask is Installed";
+        } else {
+          // Display the button as red
+          document.getElementById("statusButton").style.backgroundColor = "red";
+          document.getElementById("statusButton").innerHTML = "Metamask is Not Installed";
+        }
+      });
+    </script>
+
+<div class="card mb-3">
+  <div class="card-header bg-dark text-white">Metamask Wallet Data</div>
+  <div class="card-body">
+    <p class="card-text" style="color: black;" id="address"></p>
+    <p class="card-text"style="color: black;" id="balance"></p>
+  </div>
+</div>
+
+
+
+<br>
+
+<button id="connectButton" class="btn btn-primary">Connect</button>
+
+<script>
+const connectButton = document.getElementById("connectButton");
+
+window.addEventListener("load", async () => {
+  if (window.ethereum) {
+    window.ethereum.autoRefreshOnNetworkChange = false;
+    const accounts = await window.ethereum.enable();
+    if (accounts.length > 0) {
+      connectButton.innerText = "Metamask Wallet Connected";
+      connectButton.disabled = true;
+    } else {
+      connectButton.innerText = "Metamask Wallet Not Connected";
+    }
+  } else {
+    connectButton.innerText = "MetaMask Not Found";
+    connectButton.disabled = true;
+  }
+});
+
+connectButton.addEventListener("click", async () => {
+  if (window.ethereum) {
+    window.ethereum.autoRefreshOnNetworkChange = false;
+    const accounts = await window.ethereum.enable();
+    if (accounts.length > 0) {
+      connectButton.innerText = "Connected";
+      connectButton.disabled = true;
+    } else {
+      connectButton.innerText = "Not Connected";
+    }
+  }
+});
+</script>
+
+<br>
+
+<script>
+  // Check if the user has Metamask installed and if it's unlocked
+  if (window.ethereum) {
+    window.web3 = new Web3(ethereum);
+    try {
+      // Request access to the user's Metamask account
+      ethereum.enable().then(function (accounts) {
+        // Get the user's Metamask account address
+        const address = accounts[0];
+        document.querySelector("#address").innerHTML = "Address: " + address;
+
+        // Get the user's Metamask account balance
+        web3.eth.getBalance(address, function (error, result) {
+          if (!error) {
+            const balance = web3.utils.fromWei(result, "ether") + " ETH";
+            document.querySelector("#balance").innerHTML = "Balance: " + balance;
+          } else {
+            console.error(error);
+          }
+        });
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  } else {
+    console.error("Metamask is not installed or not unlocked.");
+  }
+</script>
+    
+    <div class="container">
+      <h2 class="text-center"> Please enter the details</h2>
+      <br>
+      <div class="row">
+        <div class="col-md-6">
+          <form id="blockForm">
+            <div class="form-group">
+              <label for="blockHashOrNumber">Block Hash or Number:</label>
+              <input type="text" class="form-control" id="blockHashOrNumber" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Fetch Block Data</button>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <form id="transactionForm">
+            <div class="form-group">
+              <label for="transactionHash">Transaction Hash:</label>
+              <input type="text" class="form-control" id="transactionHash" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Fetch Transaction Data</button>
+          </form>
+        </div>
+      </div>
+      <br>
+      <div id="output" class="card">
+        <div class="card-body">
+          Transaction data will be displayed here
+        </div>
+      </div>
+      </div>
+      <script>
+      $(document).ready(function() {
+      $("#output").hide();
+      });
+        // Fetch transaction data using transaction hash
+  $("#transactionForm").submit(function (e) {
+    e.preventDefault();
+    var transactionHash = $("#transactionHash").val();
+    
+    web3.eth.getTransaction(transactionHash, function (error, result) {
+      if (error) {
+        $("#output").html("<h3 style='color: black; text-align: center;'>Error: " + error + "</h3>");
+      } else {
+        $("#output").html("<h3 style='color: black; text-align: center;'>Transaction Data:</h3><pre>" + JSON.stringify(result, null, 2) + "</pre>");
+      }
+      $("#output").show();
+    });
+  });
+
+  
+  
+  // Fetch block data using block hash or number
+  
+  $("#blockForm").submit(function (e) 
+  { 
+    e.preventDefault();
+    var blockHashOrNumber = $("#blockHashOrNumber").val();
+    
+    web3.eth.getBlock(blockHashOrNumber, function (error, result) {
+      if (error) {
+        $("#output").html("<h3>Error: " + error + "</h3>");
+      } else {
+        $("#output").html("<h3 style='color: black; text-align: center;'>Block Data:</h3><pre>" + JSON.stringify(result, null, 2) + "</pre>");
+
+      }
+      $("#output").show();
+    });
+  });
+
+  
+</script>
+</body>
+</html>
